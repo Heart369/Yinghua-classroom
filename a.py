@@ -39,7 +39,7 @@ def cookie2dict(cookie):
 
 
 # 监听响应以捕获验证码图像
-def handle_response(response,page):
+def handle_response(response,page,username,password):
     if "code" in response.url:  # 根据响应 URL 判断是否是验证码请求
         print(f"Response URLBBB: {response.url}, Status: {response.status}")
         if response.status == 200:
@@ -48,7 +48,8 @@ def handle_response(response,page):
             with open("captcha.png", "wb") as f:
                 f.write(response.body())
             print("验证码图片已保存为 'captcha.png'")
-            login_ocr(page)
+
+            login_ocr(page,username,password)
         else:
             print('失败了？')
 
@@ -78,13 +79,12 @@ def inputCode(page):
     page.fill('input[placeholder="请输入验证码"]:nth-of-type(2)', result)
     page.click(".layui-layer-btn0")
 
-def login(page, username, passwords):
-    page.fill('#username', value=username)
-    page.fill('#password', value=passwords)
+def login(page):
+    page.goto('https://zswxy.yinghuaonline.com/user/node')
 
-
-
-def login_ocr(page):
+def login_ocr(page,username,passwords):
+        page.fill('#username', value=username)
+        page.fill('#password', value=passwords)
         print("进行识别")
         sleep(4)
         # 验证码识别
@@ -193,14 +193,54 @@ def start():
         browser = p.chromium.launch(executable_path="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
                                     headless=False)
         page = browser.new_page()
-        page.goto('https://zswxy.yinghuaonline.com/user/node')
-        username = users[0]['username']
-        passwords = users[0]['password']
+
         # 监听请求
         page.on("request", lambda request: print(f"Request: {request.url}"))
+        username = users[0]['username']
+        passwords = users[0]['password']
         # 监听响应以捕获验证码图像
-        page.on("response",lambda response: handle_response(response, page))
-        login(page, username, passwords)
+        page.on("response",lambda response: handle_response(response, page,username,passwords))
+
+        login(page)
+
+        # # 打开目标网页
+        # page.goto('https://zswxy.yinghuaonline.com/user/node')
+        # page.fill('#username', value=username)
+        # page.fill('#password', value=password)
+        #
+        # # 等待输入，保持浏览器打开
+        # sleep(3)
+        #
+        # while True:
+        #     # 验证码识别
+        #     ocr = ddddocr.DdddOcr(beta=True)
+        #     image = open("captcha.png", "rb").read()
+        #     result = ocr.classification(image)
+        #     print(result)
+        #     page.fill('#code', value=result)
+        #     page.click(".btn")
+        #
+        #     sleep(3)  # 等待页面加载
+        #
+        #     # 检查是否有验证码错误提示弹窗
+        #     captcha_error_popup = page.query_selector("#layui-layer1")
+        #     if captcha_error_popup and page.is_visible("#layui-layer1 .layui-layer-btn0"):
+        #         page.click("#layui-layer1 .layui-layer-btn0")
+        #         print("验证码有误提示弹窗出现，已点击确定按钮。重新尝试登录...")
+        #         continue  # 继续重新识别验证码
+        #
+        #     # 检查登录页面是否跳转到用户主页，检查是否存在用户页面特定元素
+        #     try:
+        #         page.wait_for_selector(".user-course", timeout=5000)  # 检查登录后课程信息是否加载
+        #         print("登录成功！")
+        #         break  # 成功登录，跳出循环
+        #     except:
+        #         print("登录失败，验证码可能错误。重新尝试...")
+        #         continue  # 如果未加载课程信息，重新尝试登录
+
+        # 登录成功后
+        # 等待页面加载完成
+
         # sleep(5)
         page.wait_for_selector(".user-course")  # 确保课程信息已经加载
 
