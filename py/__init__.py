@@ -39,7 +39,7 @@ def start():
         page.fill('#username', value=username)
         page.fill('#password', value=password)
         # 等待用户输入，保持浏览器打开
-        sleep(1)
+        sleep(3)
         ocr = ddddocr.DdddOcr(beta=True)
         image = open("captcha_response.png", "rb").read()
         result = ocr.classification(image)
